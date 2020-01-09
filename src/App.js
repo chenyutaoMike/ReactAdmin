@@ -1,19 +1,19 @@
 import React, { Component } from 'react';
-import { Button, message } from 'antd';
+import { BrowserRouter, Route, Switch } from 'react-router-dom'
+
+import Login from './pages/login/login'
+import Admin from './pages/admin/admin'
 
 class App extends Component {
-  handlClick = () =>{
-    message.success('成功拉')
-  }
+
   render() {
     return (
-      <div className="App">
-        <Button type="primary" onClick={this.handlClick}>Primary</Button>
-        <Button>Default</Button>
-        <Button type="dashed">Dashed</Button>
-        <Button type="danger">Danger</Button>
-        <Button type="link">Link</Button>
-      </div>
+      <BrowserRouter>
+        <Switch>     {/* 只匹配一个 */}
+          <Route path="/login" component={Login}></Route>
+          <Route path="/" component={Admin}></Route>
+        </Switch>
+      </BrowserRouter>
     );
   }
 
