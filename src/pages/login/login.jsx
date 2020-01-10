@@ -7,11 +7,41 @@ import logo from '../../assets/images/logo.png'
  */
 
 class Login extends Component {
+
   handleSubmit = (event) => {
     event.preventDefault(); //阻止事件的默认行为
-    const valus = this.props.form.getFieldsValue();
-    console.log(valus)
+    //对所有表单字段进行校验
+    this.props.form.validateFields((err, values) => {
+      if (!err) {
+        //没有错误，就代表校验成功
+        console.log('校验成功，提交请求', values);
+      } else {
+        //校验失败
+        console.log('校验失败')
+      }
+    });
   };
+
+  /**
+   * 对密码进行自定义验证
+   */
+
+  validatePwd = (rule, value, callback) => {
+    // callback()  //不传递参数，代表验证成功
+    // callback('xxx') //传递参数，代表验证失败，传递过去的是提示内容
+    if (!value) {
+      callback('密码必须输入')
+    } else if (value.length < 4) {
+      callback('密码长度不能小于4位')
+    } else if (value.length > 12) {
+      callback('密码长度不能大于12位')
+    } else if (!/^[a-zA-Z0-9_]+$/.test(value)) {
+      callback('密码必须是英文、数字或下划线组成')
+    }
+    callback()
+  }
+
+
   render() {
     //得到具收集表单验证，验证表单数据的对象form
     // const form =this.props.form;
@@ -27,9 +57,15 @@ class Login extends Component {
           <h2>用户登陆</h2>
           <Form onSubmit={this.handleSubmit} className="login-form">
             <Form.Item>
-              {/* username:标识名称，以后收集表单数据的时候用到的，username的下一个参数就是表单验证规则*/}
               {getFieldDecorator('username', {
-                rules: [{ required: true, message: 'Please input your username!' }],
+                //声明式验证：直接使用别人定义好的验证规则进行验证
+                rules: [
+                  { required: true, whitespace: true, message: '用户必须输入' },
+                  { min: 4, message: '用户名至少4位' },
+                  { max: 12, message: '用户名最多12位' },
+                  { pattern: /^[a-zA-Z0-9_]+$/, message: '用户名必须是英文、数字或下划线组成' }
+                ],
+                initialValue:'admin' //指定初始值
               })(<Input
                 prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />}
                 placeholder="用户名"
@@ -38,7 +74,9 @@ class Login extends Component {
             </Form.Item>
             <Form.Item>
               {getFieldDecorator('password', {
-                rules: [{ required: true, message: 'Please input your username!' }],
+                rules: [
+                  { validator: this.validatePwd }
+                ],
               })(<Input
                 prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />}
                 type="password"
