@@ -1,6 +1,12 @@
-import React, { Component } from 'react';
-import { Form, Icon, Input, Button } from 'antd';
-import './login.less';
+import React, { Component } from 'react'
+import { Form, Icon, Input, Button, message } from 'antd'
+import { Redirect } from 'react-router-dom'
+import { reqLogin } from '../../api'
+import { connect } from 'react-redux'
+import { setUserAction } from './store/actionCreator'
+import memoryUtils from '../../utils/memoryUtils'
+import storageUtils from '../../utils/storageUtils'
+import './login.less'
 import logo from '../../assets/images/logo.png'
 /**
  *  登陆的路由组件
@@ -11,10 +17,24 @@ class Login extends Component {
   handleSubmit = (event) => {
     event.preventDefault(); //阻止事件的默认行为
     //对所有表单字段进行校验
-    this.props.form.validateFields((err, values) => {
+    this.props.form.validateFields(async (err, values) => {
       if (!err) {
         //没有错误，就代表校验成功
-        console.log('校验成功，提交请求', values);
+        const { username, password } = values
+        const result = await reqLogin(username, password)
+        if (result.status === 0) {
+          //提示登陆成功
+          message.success('登陆成功')
+          const user = result.data
+          memoryUtils.user = user
+          this.props.setUserDispath(user)
+          storageUtils.saveUser(user)
+          //跳转到管理页面(不需要再回退到登陆)
+          this.props.history.replace('/')
+        } else {
+          //提示登陆失败
+          message.error(result.msg)
+        }
       } else {
         //校验失败
         console.log('校验失败')
@@ -43,6 +63,16 @@ class Login extends Component {
 
 
   render() {
+
+    //如果用户已经登陆，自动跳转到管理界面
+    const user = memoryUtils.user
+    if (user && user._id) {
+      return <Redirect to="/" />
+    }
+    //redux的登录信息
+    // if (this.props.user && this.props.user._id) {
+    //   return <Redirect to="/" />
+    // }
     //得到具收集表单验证，验证表单数据的对象form
     // const form =this.props.form;
     const { getFieldDecorator } = this.props.form;
@@ -65,7 +95,7 @@ class Login extends Component {
                   { max: 12, message: '用户名最多12位' },
                   { pattern: /^[a-zA-Z0-9_]+$/, message: '用户名必须是英文、数字或下划线组成' }
                 ],
-                initialValue:'admin' //指定初始值
+                initialValue: 'admin' //指定初始值
               })(<Input
                 prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />}
                 placeholder="用户名"
@@ -116,4 +146,18 @@ class Login extends Component {
 //包装Form组件生成一个新的组件Form(Login)
 //新组件会向Form组件传递一个强大的对象属性: form
 const WrapLogin = Form.create()(Login);
-export default WrapLogin;
+
+const mapStateToProps = (state) => {
+  return {
+    user: state.userReducer.user
+  }
+}
+const mapDispatchToprops = (dispatch) => {
+  return {
+    setUserDispath(user) {
+     
+      dispatch(setUserAction(user))
+    }
+  }
+}
+export default connect(mapStateToProps, mapDispatchToprops)(WrapLogin);
