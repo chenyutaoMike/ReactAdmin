@@ -8,57 +8,104 @@ import {
   Button,
   Icon
 } from 'antd'
-import LinkButton from '../../components/link-button';
+import LinkButton from '../../components/link-button'
+import { reqCategorys } from '../../api'
 const { Item } = Form
 const { TextArea } = Input
 /**
  * product的添加和更新的子路由组件
  */
-const options = [
-  {
-    value: 'zhejiang',
-    label: 'Zhejiang',
-    isLeaf: false,
-  },
-  {
-    value: 'jiangsu',
-    label: 'Jiangsu',
-    isLeaf: false,
-  },
-];
+
 class ProductAddUpdate extends Component {
 
   state = {
-    options,
+    options: []
   }
+  initOptios = async (categorys) => {
+
+    //根据数组生成opthions数组
+    const options = categorys.map(c => ({
+      value: c._id,
+      label: c.name,
+      isLeaf: false,   //不是叶子
+    }))
+
+    // 如果是一个二级分类商品的更新
+    const { isUpdate, product } = this
+    const { pCategoryId, categoryId } = product
+
+    if (isUpdate && pCategoryId !== 0) {
+      //获取对应的二级分类列表
+      const subCategorys = await this.getCategorys(pCategoryId)
+      //生成二级下拉列表的options
+      const childOption = subCategorys.map(c => ({
+        value: c._id,
+        label: c.name,
+        isLeaf: true,
+      }))
+      //找到当前商品对应的一级option对象
+
+      const targetOption = options.find(option => option.value === pCategoryId)
+
+      //关联到对应的一级option上
+      targetOption.children = childOption
+    }
+
+    //更新options状态
+    this.setState({
+      options
+    })
+  }
+  /**
+   * 获取一级/二级分类列表，并显示
+   * async 函数的返回值是一个新的promise对象，promise的结果和值由async的结果来决定
+   */
+  getCategorys = async (parentId) => {
+    const result = await reqCategorys(parentId)
+    console.log(result)
+    if (result.status === 0) {
+      const catrgorys = result.data
+
+      if (parentId === '0') {  //一级分类列表
+        this.initOptios(catrgorys)
+      } else {  //二级列表
+        return catrgorys  //返回二级列表 ==> 当前async函数返回的promise就会成功且value为catrgorys
+      }
+    }
+  }
+
   /**
    * 用于加载下一级列表的回调函数
    */
-  loadData = selectedOptions => {
+  loadData = async selectedOptions => {
     //得到选择的option对象
     const targetOption = selectedOptions[0]
     //显示loding
     targetOption.loading = true
 
-    //模拟发送请求列表并更新
-    setTimeout(() => {
-      //隐藏loding
-      targetOption.loading = false;
-      targetOption.children = [
-        {
-          label: `${targetOption.label} Dynamic 1`,
-          value: 'dynamic1',
-        },
-        {
-          label: `${targetOption.label} Dynamic 2`,
-          value: 'dynamic2',
-        },
-      ]
-      //更新 options状态
-      this.setState({
-        options: [...this.state.options],
-      })
-    }, 1000);
+    //根据选中的分类，请求获取二级分类列表
+    const subCategorys = await this.getCategorys(targetOption.value)
+    //隐藏loding
+    targetOption.loading = false
+
+    if (subCategorys && subCategorys.length > 0) {
+      console.log('进来2')
+      //生成一个二级列表的options
+      const childOptions = subCategorys.map(c => ({
+        value: c._id,
+        label: c.name,
+        isLeaf: true,
+      }))
+
+      //关联到option上
+      targetOption.children = childOptions
+    } else { //当前选中的分类没有二级分类
+      targetOption.isLeaf = true
+
+    }
+    this.setState({
+      options: [...this.state.options],
+    })
   }
   /**
    * 验证价格的自定义验证函数
@@ -74,12 +121,41 @@ class ProductAddUpdate extends Component {
     //进行表单验证，如果通过了，才发送请求
     this.props.form.validateFields((err, values) => {
       if (!err) {
+        console.log(values)
         console.log('GG思密达')
       }
     })
   }
-
+  componentDidMount() {
+    this.getCategorys('0')
+  }
+  componentWillMount() {
+    // 取出携带的state
+    const product = this.props.location.state
+    // 保存是否是更新的标识
+    this.isUpdate = !!product
+    //保存商品(如果没有，保存是{} )
+    this.product = product || {}
+  }
   render() {
+
+    const { isUpdate, product } = this
+    const { pCategoryId, categoryId } = product
+    //用来接收级联分类ID的数组
+    console.log(product)
+    const categoryIds = []
+    if (isUpdate) {
+      //商品是一个一级分类的商品
+      if (pCategoryId === '0') {
+        categoryIds.push(categoryId)
+      } else {
+        //商品是一个二级分类的商品
+        categoryIds.push(pCategoryId)
+        categoryIds.push(categoryId)
+
+      }
+
+    }
     //指定Item布局的配置对象
     const formItemLayout = {
       labelCol: { span: 2 },  //左侧label的宽度
@@ -88,10 +164,10 @@ class ProductAddUpdate extends Component {
 
     const title = (
       <span>
-        <LinkButton>
+        <LinkButton onClick={() => this.props.history.goBack()}>
           <Icon type="arrow-left" style={{ fontSize: 20 }}></Icon>
         </LinkButton>
-        <span>添加商品</span>
+        <span>{isUpdate ? '修改商品' : '添加商品'}</span>
       </span>
     )
     const { getFieldDecorator } = this.props.form
@@ -101,7 +177,7 @@ class ProductAddUpdate extends Component {
           <Item label='商品名称'>
             {
               getFieldDecorator('name', {
-                initialValue: '',
+                initialValue: product.name,
                 rules: [
                   { required: true, message: '必须输入商品名称' }
                 ]
@@ -112,7 +188,7 @@ class ProductAddUpdate extends Component {
           <Item label='商品描述'>
             {
               getFieldDecorator('desc', {
-                initialValue: '',
+                initialValue: product.desc,
                 rules: [
                   { required: true, message: '必须输入商品描述' }
                 ]
@@ -123,7 +199,7 @@ class ProductAddUpdate extends Component {
           <Item label='商品价格'>
             {
               getFieldDecorator('price', {
-                initialValue: '',
+                initialValue: product.price,
                 rules: [
                   { required: true, message: '必须输入商品价格' },
                   { validator: this.validatePrice }
@@ -133,11 +209,21 @@ class ProductAddUpdate extends Component {
 
           </Item>
           <Item label='商品分类'>
-            <Cascader
-              options={this.state.options}  //需要显示的列表数据数组
-              loadData={this.loadData} //当选择某个列表项目，加载下一级列表的监听回调
-           
-            />
+            {
+              getFieldDecorator('categoryIds', {
+                initialValue: categoryIds,
+                rules: [
+                  { required: true, message: '必须指定商品分类' },
+
+                ]
+              })(<Cascader
+                placeholder="请指定商品分类"
+                options={this.state.options}  //需要显示的列表数据数组
+                loadData={this.loadData} //当选择某个列表项目，加载下一级列表的监听回调
+
+              />)
+            }
+
           </Item>
           <Item label='商品图片'>
             <div>商品图片</div>
