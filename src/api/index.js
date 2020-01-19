@@ -23,24 +23,32 @@ export const reqAddCategorys = (parentId, categoryName) => ajax(BASE + '/manage/
 export const reqUpdataCategorys = ({ categoryId, categoryName }) => ajax(BASE + '/manage/category/update', { categoryId, categoryName }, 'POST')
 
 //获取一个分类
-export const reqCategory = (categoryId) => ajax(BASE+'/manage/category/info',{categoryId})
+export const reqCategory = (categoryId) => ajax(BASE + '/manage/category/info', { categoryId })
 
 //获取商品分页列表
 export const reqProducts = (pageNum, pageSize) => ajax(BASE + '/manage/product/list', { pageNum, pageSize })
 
 //更新商品的状态(上架/下架)
-export const reqUpdateStatus = (productId,status) => ajax(BASE+'/manage/product/updateStatus',{productId,status},'POST')
+export const reqUpdateStatus = (productId, status) => ajax(BASE + '/manage/product/updateStatus', { productId, status }, 'POST')
 
 /**
  * 搜索商品分页列表(根据商品名称/商品描述)
  * searchType:搜索的类型,productName/priductDesc
  * 
  */
-export const reqSearchProducts = ({ pageNum, pageSize, searchName ,searchType}) => ajax(BASE + '/manage/product/search', {
+export const reqSearchProducts = ({ pageNum, pageSize, searchName, searchType }) => ajax(BASE + '/manage/product/search', {
   pageNum,
   pageSize,
   [searchType]: searchName
 })
+
+
+export const reqDeleteImg = (name) => ajax(BASE + '/manage/img/delete', { name }, 'POST')
+
+
+
+
+
 /**
  * json请求的接口函数
  */

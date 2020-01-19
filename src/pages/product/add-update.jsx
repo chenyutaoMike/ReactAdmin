@@ -4,11 +4,11 @@ import {
   Form,
   Input,
   Cascader,
-  Upload,
   Button,
   Icon
 } from 'antd'
 import LinkButton from '../../components/link-button'
+import PicturesWall from './prictures-wall'
 import { reqCategorys } from '../../api'
 const { Item } = Form
 const { TextArea } = Input
@@ -17,7 +17,10 @@ const { TextArea } = Input
  */
 
 class ProductAddUpdate extends Component {
-
+  constructor(props) {
+    super(props)
+    this.pw = React.createRef()  //创建用来保存ref表示的标签对象的容器
+  }
   state = {
     options: []
   }
@@ -32,7 +35,7 @@ class ProductAddUpdate extends Component {
 
     // 如果是一个二级分类商品的更新
     const { isUpdate, product } = this
-    const { pCategoryId, categoryId } = product
+    const { pCategoryId } = product
 
     if (isUpdate && pCategoryId !== 0) {
       //获取对应的二级分类列表
@@ -89,7 +92,7 @@ class ProductAddUpdate extends Component {
     targetOption.loading = false
 
     if (subCategorys && subCategorys.length > 0) {
-      console.log('进来2')
+
       //生成一个二级列表的options
       const childOptions = subCategorys.map(c => ({
         value: c._id,
@@ -118,9 +121,14 @@ class ProductAddUpdate extends Component {
     }
   }
   submit = () => {
+
+
+
     //进行表单验证，如果通过了，才发送请求
     this.props.form.validateFields((err, values) => {
       if (!err) {
+        const imgs = this.pw.current.getImgs()
+        console.log(imgs)
         console.log(values)
         console.log('GG思密达')
       }
@@ -140,7 +148,7 @@ class ProductAddUpdate extends Component {
   render() {
 
     const { isUpdate, product } = this
-    const { pCategoryId, categoryId } = product
+    const { pCategoryId, categoryId ,imgs} = product
     //用来接收级联分类ID的数组
     console.log(product)
     const categoryIds = []
@@ -226,7 +234,7 @@ class ProductAddUpdate extends Component {
 
           </Item>
           <Item label='商品图片'>
-            <div>商品图片</div>
+            <PicturesWall ref={this.pw} imgs={imgs}/>
           </Item>
           <Item label='商品详情'>
             <div>商品详情</div>
