@@ -5,11 +5,13 @@ import {
   Input,
   Cascader,
   Button,
-  Icon
+  Icon,
+  message
 } from 'antd'
 import LinkButton from '../../components/link-button'
 import PicturesWall from './prictures-wall'
-import { reqCategorys } from '../../api'
+import RichTextEditor from './rich-text-editor'
+import { reqCategorys, reqAddOrUpdateProduct } from '../../api'
 const { Item } = Form
 const { TextArea } = Input
 /**
@@ -20,6 +22,7 @@ class ProductAddUpdate extends Component {
   constructor(props) {
     super(props)
     this.pw = React.createRef()  //创建用来保存ref表示的标签对象的容器
+    this.editor = React.createRef()
   }
   state = {
     options: []
@@ -122,15 +125,40 @@ class ProductAddUpdate extends Component {
   }
   submit = () => {
 
-
-
     //进行表单验证，如果通过了，才发送请求
-    this.props.form.validateFields((err, values) => {
+    this.props.form.validateFields(async (err, values) => {
       if (!err) {
+
+        //1.收集数据,并封装成product对象
+        const { name, desc, price, categoryIds } = values
+        let pCategoryId, categoryId
+        if (categoryIds.length === 1) {
+          pCategoryId = '0'
+          categoryId = categoryIds[0]
+        } else {
+          pCategoryId = categoryIds[0]
+          categoryId = categoryIds[1]
+        }
         const imgs = this.pw.current.getImgs()
-        console.log(imgs)
-        console.log(values)
-        console.log('GG思密达')
+        const detail = this.editor.current.getDetail()
+        const product = {
+          name, desc, price, pCategoryId, categoryId, imgs, detail
+        }
+        //如果是更新，需要添加_id
+        if (this.isUpdate) {
+          product._id = this.product._id
+        }
+        //2.调用接口请求函数去添加/更新
+        const result = await reqAddOrUpdateProduct(product)
+        //3.根据结果提示
+        if (result.status === 0) {
+          message.success(`${this.isUpdate ? '更新' : '添加'}商品成功 `)
+          this.props.history.goBack()
+        } else {
+          message.error(`${this.isUpdate ? '更新' : '添加'}商品失败 `)
+        }
+
+
       }
     })
   }
@@ -148,7 +176,7 @@ class ProductAddUpdate extends Component {
   render() {
 
     const { isUpdate, product } = this
-    const { pCategoryId, categoryId ,imgs} = product
+    const { pCategoryId, categoryId, imgs, detail } = product
     //用来接收级联分类ID的数组
     console.log(product)
     const categoryIds = []
@@ -234,10 +262,10 @@ class ProductAddUpdate extends Component {
 
           </Item>
           <Item label='商品图片'>
-            <PicturesWall ref={this.pw} imgs={imgs}/>
+            <PicturesWall ref={this.pw} imgs={imgs} />
           </Item>
-          <Item label='商品详情'>
-            <div>商品详情</div>
+          <Item label='商品详情' labelCol={{ span: 2 }} wrapperCol={{ span: 20 }}>
+            <RichTextEditor ref={this.editor} detail={detail} />
           </Item>
           <Button type="primary" onClick={this.submit}>提交</Button>
         </Form>

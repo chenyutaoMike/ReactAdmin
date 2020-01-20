@@ -42,11 +42,16 @@ export const reqSearchProducts = ({ pageNum, pageSize, searchName, searchType })
   [searchType]: searchName
 })
 
-
+//删除指定名称的图片
 export const reqDeleteImg = (name) => ajax(BASE + '/manage/img/delete', { name }, 'POST')
 
+//添加商品
+export const reqAddProduct = (product) => ajax(BASE + '/manage/product/add', product, 'POST')
+//修改商品
+export const reqUpdateProduct = (product) => ajax(BASE + '/manage/product/update', product, 'POST')
 
-
+//添加修改商品接口合并
+export const reqAddOrUpdateProduct = (product) => ajax(BASE + '/manage/product/' + (product._id ? 'update' : 'add'), product, 'POST')
 
 
 /**
