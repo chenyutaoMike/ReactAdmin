@@ -34,7 +34,7 @@ class Header extends Component {
         title = item.title
       } else if (item.children) {
         //在所有的子item中查找匹配的
-        const cItem = item.children.find(childrenitem => childrenitem.key === path)
+        const cItem = item.children.find(childrenitem => path.indexOf(childrenitem.key) === 0)
         //如果有cItem，那么说明有匹配的
         if (cItem) {
           title = cItem.title
