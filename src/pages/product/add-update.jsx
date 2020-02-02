@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
   Card,
   Form,
@@ -18,7 +18,7 @@ const { TextArea } = Input
  * product的添加和更新的子路由组件
  */
 
-class ProductAddUpdate extends Component {
+class ProductAddUpdate extends PureComponent {
   constructor(props) {
     super(props)
     this.pw = React.createRef()  //创建用来保存ref表示的标签对象的容器

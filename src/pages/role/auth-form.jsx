@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types'
 import {
   Form,
@@ -10,7 +10,7 @@ import menuList from '../../config/menuConfig'
 const Item = Form.Item
 const { TreeNode } = Tree;
 
-class AuthForm extends Component {
+class AuthForm extends PureComponent {
 
   static propTypes = {
     role: PropTypes.object

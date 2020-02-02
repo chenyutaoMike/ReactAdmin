@@ -10,7 +10,8 @@ import {
 import AddForm from './add-form'
 import AuthForm from './auth-form'
 import memoryUtils from '../../utils/memoryUtils'
-import {formateDate} from '../../utils/dateUtils'
+import storageUtils from '../../utils/storageUtils'
+import { formateDate } from '../../utils/dateUtils'
 class Role extends Component {
 
   state = {
@@ -33,12 +34,12 @@ class Role extends Component {
       {
         title: '创建时间',
         dataIndex: 'create_time',
-        render:(create_time) => formateDate(create_time)
+        render: (create_time) => formateDate(create_time)
       },
       {
         title: '授权时间',
         dataIndex: 'auth_time',
-        render:(anth_time) => formateDate(anth_time)
+        render: (anth_time) => formateDate(anth_time)
       },
       {
         title: '授权人',
@@ -113,8 +114,17 @@ class Role extends Component {
 
     const result = await reqUpateRole(role)
     if (result.status === 0) {
-      message.success('设置角色权限成功')
-      this.getRoles()
+
+      //如果当前更新的是自己的角色的权限，强制退出
+      if (role._id === memoryUtils.user.role._id) {
+        storageUtils.removeUser()
+        memoryUtils.user = {}
+        this.props.history.replace('/login')
+        message.success('当前用户角色权限修改了，重新登录')
+      } else {
+        message.success('设置角色权限成功')
+        this.getRoles()
+      }
     } else {
       message.error('设置权限失败')
     }
@@ -145,7 +155,13 @@ class Role extends Component {
           bordered
           rowKey='_id'
           pagination={{ defaultPageSize: 5, pageSize: 3 }}
-          rowSelection={{ type: 'radio', selectedRowKeys: [role._id] }}
+          rowSelection={{
+            type: 'radio',
+            selectedRowKeys: [role._id],
+            onSelect: (role) => { //选择某个radio的时候的回调
+              this.setState({ role })
+            }
+          }}
           onRow={this.onRow}
         >
         </Table>

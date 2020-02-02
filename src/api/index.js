@@ -11,8 +11,7 @@ import { message } from 'antd'
 //简写
 const BASE = ''
 export const reqLogin = (username, password) => ajax(BASE + '/login', { username, password }, 'POST')
-//添加用户
-export const reqAddUser = (user) => ajax(BASE + '/manage/user/add', user, 'POST')
+
 
 
 //获取一级/二级分类列表
@@ -61,6 +60,15 @@ export const reqAddRole = (roleName) => ajax(BASE + '/manage/role/add', { roleNa
 
 //更新角色
 export const reqUpateRole = (role) => ajax(BASE + '/manage/role/update', role, 'POST')
+
+//获取所有用户的列表
+export const reqUsers = () => ajax(BASE + '/manage/user/list')
+
+//删除指定用户
+export const reqDeleteUser = (userId) => ajax(BASE + '/manage/user/delete', { userId }, 'POST')
+
+//添加用户
+export const reqAddOrUpdateUser = (user) => ajax(BASE + '/manage/user/' + (user._id ? 'update' : 'add'), user, 'POST')
 
 
 /**
