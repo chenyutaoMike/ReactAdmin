@@ -1,11 +1,8 @@
 import React, { Component } from 'react'
-import { Form, Icon, Input, Button, message } from 'antd'
+import { Form, Icon, Input, Button } from 'antd'
 import { Redirect } from 'react-router-dom'
-import { reqLogin } from '../../api'
 import { connect } from 'react-redux'
-import { setUserAction } from './store/actionCreator'
-import memoryUtils from '../../utils/memoryUtils'
-import storageUtils from '../../utils/storageUtils'
+import { login } from './store/actionCreator'
 import './login.less'
 import logo from '../../assets/images/logo.png'
 /**
@@ -21,20 +18,22 @@ class Login extends Component {
       if (!err) {
         //没有错误，就代表校验成功
         const { username, password } = values
-        const result = await reqLogin(username, password)
-        if (result.status === 0) {
-          //提示登陆成功
-          message.success('登陆成功')
-          const user = result.data
-          memoryUtils.user = user
-          this.props.setUserDispath(user)
-          storageUtils.saveUser(user)
-          //跳转到管理页面(不需要再回退到登陆)
-          this.props.history.replace('/')
-        } else {
-          //提示登陆失败
-          message.error(result.msg)
-        }
+        //调用分发异步action的函数 => 发登陆的异步请求，有了结果后更新状态
+        this.props.login(username, password)
+        // const result = await reqLogin(username, password)
+        // if (result.status === 0) {
+        //   //提示登陆成功
+        //   message.success('登陆成功')
+        //   const user = result.data
+        //   memoryUtils.user = user
+        //   this.props.setUserDispath(user)
+        //   storageUtils.saveUser(user)
+        //   //跳转到管理页面(不需要再回退到登陆)
+        //   this.props.history.replace('/home')
+        // } else {
+        //   //提示登陆失败
+        //   message.error(result.msg)
+        // }
       } else {
         //校验失败
         console.log('校验失败')
@@ -65,10 +64,13 @@ class Login extends Component {
   render() {
 
     //如果用户已经登陆，自动跳转到管理界面
-    const user = memoryUtils.user
+    // const user = memoryUtils.user
+    const user = this.props.user
+
     if (user && user._id) {
       return <Redirect to="/" />
     }
+    const errorMsg = this.props.user.errorMsg
     //redux的登录信息
     // if (this.props.user && this.props.user._id) {
     //   return <Redirect to="/" />
@@ -84,6 +86,7 @@ class Login extends Component {
           <h1>后台管理系统</h1>
         </header>
         <section className="login-content">
+          <div className={user.errorMsg?'error-msg show':'error-msg'}>{errorMsg}</div>
           <h2>用户登陆</h2>
           <Form onSubmit={this.handleSubmit} className="login-form">
             <Form.Item>
@@ -149,14 +152,13 @@ const WrapLogin = Form.create()(Login);
 
 const mapStateToProps = (state) => {
   return {
-    user: state.userReducer.user
+    user: state.userReducer
   }
 }
 const mapDispatchToprops = (dispatch) => {
   return {
-    setUserDispath(user) {
-     
-      dispatch(setUserAction(user))
+    login: (username, password) => {
+      dispatch(login(username, password))
     }
   }
 }

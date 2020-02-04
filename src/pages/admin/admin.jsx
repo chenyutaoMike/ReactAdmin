@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import memoryUtils from '../../utils/memoryUtils'
+
 import { Redirect, Switch, Route } from 'react-router-dom'
 import { connect } from 'react-redux'
 import { Layout } from 'antd';
@@ -21,16 +21,13 @@ const { Footer, Sider, Content } = Layout;
 
 class Admin extends Component {
   render() {
-    const user = memoryUtils.user
+    const user = this.props.user
 
     //如果内存没有存储user ===> 证明当前没有登陆
     if (!user || !user._id) {
       return <Redirect to="/login" />
     }
-    //store中的登录信息
-    // if (!this.props.user || !this.props.user._id) {
-    //   return <Redirect to="/login" />
-    // }
+    
     return (
       <Layout style={{ minHeight: '100%' }}>
         <Sider>
@@ -61,7 +58,7 @@ class Admin extends Component {
 }
 const mapStateToProps = (state) => {
   return {
-    user: state.userReducer.user
+    user: state.userReducer
   }
 }
 export default connect(mapStateToProps)(Admin);

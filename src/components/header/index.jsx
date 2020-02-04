@@ -1,11 +1,12 @@
-import React, { Component } from 'react';
+import React, { Component } from 'react'
 import { withRouter } from 'react-router-dom'
+import { connect } from 'react-redux'
 import { Modal } from 'antd';
 import { reqWeather } from '../../api/index'
 import { formateDate } from '../../utils/dateUtils'
-import memoryUtils from '../../utils/memoryUtils'
+import {logout} from '../../pages/login/store/actionCreator'
 import menuList from '../../config/menuConfig'
-import storageUtils from '../../utils/storageUtils'
+
 import LinkButton from '../../components/link-button'
 import './index.less'
 class Header extends Component {
@@ -53,10 +54,9 @@ class Header extends Component {
       content: '确定退出码',
       onOk: () => {  //点击了确定
         //删除保存的user数据
-        storageUtils.removeUser()
-        memoryUtils.user = {}
+        this.props.logout()
         //跳转到login页面
-        this.props.history.replace('/login')
+        
       },
       onCancel() { //点击了取消
         console.log('Cancel');
@@ -75,8 +75,10 @@ class Header extends Component {
   }
   render() {
     const { currentTime } = this.state
-    const username = memoryUtils.user.username;
-    const title = this.getTitle()
+    // const title = this.getTitle()
+    const { headerTitle } = this.props
+    const username = this.props.user.username
+
     return (
       <div className="header">
         <div className="header-top">
@@ -84,7 +86,7 @@ class Header extends Component {
           <LinkButton onClick={this.logout}>退出</LinkButton>
         </div>
         <div className="header-bottom">
-          <div className="header-bottom-left">{title}</div>
+          <div className="header-bottom-left">{headerTitle}</div>
           <div className="header-bottom-right">
             <span>{currentTime}</span>
             <img src="" alt="" />
@@ -97,5 +99,17 @@ class Header extends Component {
     );
   }
 }
-
-export default withRouter(Header);
+const mapStateToProps = state => {
+  return {
+    headerTitle: state.headerTitle,
+    user: state.userReducer
+  }
+}
+const mapDispatchToProps = dispatch => {
+  return {
+    logout(){
+      dispatch(logout())
+    }
+  }
+}
+export default connect(mapStateToProps,mapDispatchToProps)(withRouter(Header));

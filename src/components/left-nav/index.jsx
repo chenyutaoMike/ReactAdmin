@@ -1,10 +1,12 @@
-import React, { Component } from 'react';
+import React, { Component } from 'react'
 import { Link, withRouter } from 'react-router-dom'
+import { connect } from 'react-redux'
 import logo from '../../assets/images/logo.png'
 import menuList from '../../config/menuConfig'  //导航配置数组
-import memoryUtils from '../../utils/memoryUtils'
+
 import './index.less'
-import { Menu, Icon } from 'antd';
+import { Menu, Icon } from 'antd'
+import { setHeaderTitle } from '../header/store/actionCreator'
 
 const { SubMenu } = Menu;
 class LeftNav extends Component {
@@ -13,8 +15,8 @@ class LeftNav extends Component {
    */
   hasAyth = (item) => {
     const { key, isPublic } = item
-    const menus = memoryUtils.user.role.menus
-    const username = memoryUtils.user.username
+    const menus = this.props.user.role.menus
+    const username = this.props.user.username
     /**
      * 1.如果当前用户是admin
      * 2.如果当前item是公开的，直接返回true
@@ -38,7 +40,7 @@ class LeftNav extends Component {
       if (!item.children) {
         return (
           <Menu.Item key={item.key}>
-            <Link to={item.key}>
+            <Link to={item.key} >
               <Icon type={item.icon} />
               <span>{item.title}</span>
             </Link>
@@ -68,10 +70,16 @@ class LeftNav extends Component {
 
       //如果当前用户有item对应的权限，才需要显示对应的菜单项
       if (this.hasAyth(item)) {
+        //判断item是否是当前对应的item
+        if (item.key === path || path.indexOf(item.key) === 0) {
+          //更新redux中的headerTitle状态
+          this.props.setHeaderTitle(item.title)
+        }
+
         if (!item.children) {
           pre.push(
             <Menu.Item key={item.key}>
-              <Link to={item.key}>
+              <Link to={item.key} onClick={() => this.props.setHeaderTitle(item.title)}>
                 <Icon type={item.icon} />
                 <span>{item.title}</span>
               </Link>
@@ -142,4 +150,4 @@ class LeftNav extends Component {
   }
 }
 
-export default withRouter(LeftNav);
+export default connect(state =>({user:state.userReducer}), { setHeaderTitle })(withRouter(LeftNav));
