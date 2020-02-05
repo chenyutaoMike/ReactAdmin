@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import { Modal } from 'antd';
 import { reqWeather } from '../../api/index'
 import { formateDate } from '../../utils/dateUtils'
-import {logout} from '../../pages/login/store/actionCreator'
+import { logout } from '../../pages/login/store/actionCreator'
 import menuList from '../../config/menuConfig'
 
 import LinkButton from '../../components/link-button'
@@ -12,12 +12,24 @@ import './index.less'
 class Header extends Component {
 
   state = {
-    currentTime: formateDate(Date.now())  //当前时间字符串
+    currentTime: formateDate(Date.now()),  //当前时间字符串
+    dayPictureUrl: '', // 天气图片url
+    weather: '', // 天气的文本
+    currentCity: '' //城市文本
   }
 
   getReqWeather = async () => {
-    const result = await reqWeather()
-    console.log(result)
+    const result = await reqWeather('广州')
+
+    const { results } = result
+    const currentCity = results[0].currentCity
+    const dayPictureUrl = results[0].weather_data[0].dayPictureUrl
+    const weather = results[0].weather_data[0].weather
+    this.setState({
+      currentCity,
+      dayPictureUrl,
+      weather
+    })
   }
   getTime = () => {
     //每隔1s获取当前时间，并更新状态数据currentTime
@@ -56,7 +68,7 @@ class Header extends Component {
         //删除保存的user数据
         this.props.logout()
         //跳转到login页面
-        
+
       },
       onCancel() { //点击了取消
         console.log('Cancel');
@@ -69,12 +81,14 @@ class Header extends Component {
    */
   componentDidMount() {
     this.getTime()
+    this.getReqWeather()
   }
   componentWillUnmount() {
     clearInterval(this.Timer)
   }
   render() {
-    const { currentTime } = this.state
+    const { currentTime, dayPictureUrl, weather, currentCity } = this.state
+
     // const title = this.getTitle()
     const { headerTitle } = this.props
     const username = this.props.user.username
@@ -89,8 +103,9 @@ class Header extends Component {
           <div className="header-bottom-left">{headerTitle}</div>
           <div className="header-bottom-right">
             <span>{currentTime}</span>
-            <img src="" alt="" />
-            <span>晴天</span>
+            <img src={dayPictureUrl} alt="" />
+            <span style={{ marginRight: 10 }}>{weather}</span>
+            <span>{currentCity}</span>
           </div>
 
         </div>
@@ -107,9 +122,9 @@ const mapStateToProps = state => {
 }
 const mapDispatchToProps = dispatch => {
   return {
-    logout(){
+    logout() {
       dispatch(logout())
     }
   }
 }
-export default connect(mapStateToProps,mapDispatchToProps)(withRouter(Header));
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(Header));

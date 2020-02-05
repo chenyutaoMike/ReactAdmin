@@ -77,7 +77,7 @@ export const reqAddOrUpdateUser = (user) => ajax(BASE + '/manage/user/' + (user.
 
 export const reqWeather = (city) => {
   return new Promise((resolve, reject) => {
-    const url = `http://api.map.baidu.com/telematics/v3/weather?location=${city}&ou tput=json&ak=3p49MVra6urFRGOT9s8UBWr2`
+    const url = `http://api.map.baidu.com/telematics/v3/weather?location=${city}&output=json&ak=3p49MVra6urFRGOT9s8UBWr2`
     jsonp(url, {}, (err, data) => {
       if (!err && data.status === 'success') {
         resolve(data)

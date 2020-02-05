@@ -1,5 +1,5 @@
 import { SET_HEAD_TITLE } from './actionTypes';
-const initHeaderTitle = '首页'
+const initHeaderTitle = ''
 
 export default (state = initHeaderTitle, action) => {
   switch (action.type) {

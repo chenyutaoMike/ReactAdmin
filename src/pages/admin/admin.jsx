@@ -13,7 +13,7 @@ import Bar from '../charts/bar'
 import Pie from '../charts/pie'
 import Line from '../charts/line'
 import Role from '../role/role'
-
+import NotFound from '../not-found/not-found'
 const { Footer, Sider, Content } = Layout;
 /**
  * 后台管理路由组件
@@ -27,7 +27,7 @@ class Admin extends Component {
     if (!user || !user._id) {
       return <Redirect to="/login" />
     }
-    
+
     return (
       <Layout style={{ minHeight: '100%' }}>
         <Sider>
@@ -35,9 +35,10 @@ class Admin extends Component {
         </Sider>
         <Layout>
           <Header>Header</Header>
-          <Content style={{ margin:'20px',backgroundColor: '#fff' }}>
+          <Content style={{ margin: '20px', backgroundColor: '#fff' }}>
 
             <Switch>
+              <Redirect from="/" to="/home" exact={true} />
               <Route path="/home" component={Home} />
               <Route path="/category" component={Category} />
               <Route path="/product" component={Product} />
@@ -46,7 +47,8 @@ class Admin extends Component {
               <Route path="/charts/pie" component={Pie} />
               <Route path="/charts/line" component={Line} />
               <Route path="/role" component={Role} />
-              <Redirect to="/home" />
+              {/* 上面没有一个匹配的，直接显示404 */}
+              <Route component={NotFound} />
             </Switch>
 
           </Content>
